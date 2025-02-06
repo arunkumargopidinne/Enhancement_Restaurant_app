@@ -1,77 +1,79 @@
+import {useState, useContext} from 'react'
+
+import CartContext from '../../context/CartContext'
+
 import './index.css'
 
-import {useState} from 'react'
-
-const DishItem = props => {
-  const {dish, count, onIncreaseCount, onDecreaseCount} = props
+const DishItem = ({dishDetails}) => {
   const {
     dishName,
-    dishImage,
-    dishCalories,
-    dishAvailability,
+    dishType,
+    dishPrice,
     dishCurrency,
     dishDescription,
-    dishPrice,
+    dishImage,
+    dishCalories,
     addonCat,
-  } = dish
-  console.log(count)
-  const [disCount, changeCount] = useState(0)
-  const onClickIncrease = () => {
-    changeCount(disCount + 1)
-    onIncreaseCount()
-  }
-  const onClickDecrease = () => {
-    if (disCount === 0) {
-      changeCount(0)
-    } else {
-      changeCount(disCount - 1)
-      onDecreaseCount()
-    }
-  }
-  return (
-    <li className="dish-item-card">
-      <div className="circle-content-card">
-        <div className={`box  ${dishPrice > 10 ? 'high-rate-props' : ''}`}>
-          <p className={`circle ${dishPrice > 10 ? 'high-rate-circle' : ''}`} />
-        </div>
-        <div className="content-div">
-          <h1 className="name">{dishName}</h1>
-          <p className="money">{`${dishCurrency} ${dishPrice}`}</p>
-          <p className="description">{dishDescription}</p>
-          {dishAvailability ? (
-            <div className="qunatity-control-card">
-              <button
-                type="button"
-                className="control"
-                onClick={onClickDecrease}
-              >
-                -
-              </button>
-              <p className="qunatity">{disCount}</p>
-              <button
-                type="button"
-                className="control"
-                onClick={onClickIncrease}
-              >
-                +
-              </button>
-            </div>
-          ) : (
-            <p className="not-availble">Not available</p>
-          )}
+    dishAvailability,
+  } = dishDetails
 
-          {addonCat.length ? (
-            <p className="customization-text">Customizations available</p>
-          ) : (
-            ''
-          )}
-        </div>
+  const [quantity, setQuantity] = useState(0)
+  const {addCartItem} = useContext(CartContext)
+
+  const onIncreaseQuantity = () => setQuantity(prevState => prevState + 1)
+
+  const onDecreaseQuantity = () =>
+    setQuantity(prevState => (prevState > 0 ? prevState - 1 : 0))
+
+  const onAddItemToCart = () => addCartItem({...dishDetails, quantity})
+
+  const renderControllerButton = () => (
+    <div className="controller-container d-flex align-items-center bg-success">
+      <button className="button" type="button" onClick={onDecreaseQuantity}>
+        -
+      </button>
+      <p className="quantity">{quantity}</p>
+      <button className="button" type="button" onClick={onIncreaseQuantity}>
+        +
+      </button>
+    </div>
+  )
+
+  return (
+    <li className="mb-3 p-3 dish-item-container d-flex">
+      <div
+        className={`veg-border ${dishType === 1 ? 'non-veg-border' : ''} me-3`}
+      >
+        <div className={`veg-round ${dishType === 1 ? 'non-veg-round' : ''}`} />
       </div>
-      <p className="calories-num calories-num-sm">{`${dishCalories} Calories`}</p>
-      <div className="cal-img-card">
-        <p className="calories-num calories-num-lg">{`${dishCalories} Calories`}</p>
-        <img className="dish-img" alt={dishName} src={dishImage} />
+      <div className="dish-details-container">
+        <h1 className="dish-name">{dishName}</h1>
+        <p className="dish-currency-price">
+          {dishCurrency} {dishPrice}
+        </p>
+        <p className="dish-description">{dishDescription}</p>
+        {dishAvailability && renderControllerButton()}
+        {!dishAvailability && (
+          <p className="not-availability-text text-danger">Not available</p>
+        )}
+        {addonCat.length !== 0 && (
+          <p className="addon-availability-text mb-0">
+            Customizations available
+          </p>
+        )}
+        {quantity > 0 && (
+          <button
+            type="button"
+            className="btn btn-outline-primary mt-3"
+            onClick={onAddItemToCart}
+          >
+            ADD TO CART
+          </button>
+        )}
       </div>
+
+      <p className="dish-calories text-warning">{dishCalories} calories</p>
+      <img className="dish-image" alt={dishName} src={dishImage} />
     </li>
   )
 }
